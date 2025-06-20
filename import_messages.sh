@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-#  mega_import_enhanced.sh
+#  import_messages.sh
 #
 #  Автоматически импортирует полные JMS-сообщения из XML-файла в ActiveMQ-очередь.
 #  Обрабатывает header, properties и body из исходных JMS-сообщений.
@@ -21,8 +21,8 @@
 #    • В conf/activemq-cli.config должен быть описан брокер с именем <broker_alias>.
 #
 #  Запуск:
-#    chmod +x mega_import_enhanced.sh
-#    ./mega_import_enhanced.sh input/messages.xml public.claims.claimregistry test
+#    chmod +x import_messages.sh
+#    ./import_messages.sh input/messages.xml example.queue test
 # =============================================================================
 
 set -o pipefail
@@ -32,7 +32,7 @@ set -o pipefail
 if [ $# -ne 3 ]; then
     echo "Использование: $0 <xml_file> <queue_name> <broker_alias>"
     echo "  где <broker_alias> — имя, указанное в conf/activemq-cli.config"
-    echo "Пример: $0 input/messages.xml public.claims.claimregistry test"
+    echo "Пример: $0 input/messages.xml example.queue test"
     exit 1
 fi
 
@@ -206,7 +206,6 @@ validate_message_format() {
 }
 
 ### 5. Функция отправки сообщения
-# <--- СЮДА ВСТАВЬТЕ СКОПИРОВАННЫЙ КОД ФУНКЦИИ send_jms_message --->
 send_jms_message() {
     local wrapper_file="$1"
     local msg_num="$2"
@@ -252,7 +251,7 @@ EOM_INNER_SCRIPT
     cat "$log_file" | sed 's/^/      /'
 
     # Ключевой момент: проверяем, было ли сообщение отправлено, НЕЗАВИСИМО от кода возврата CLI,
-    # так как последующие команды (disconnect/exit) или сама `queue-stats` (которой теперь нет) могли вызывать ошибку.
+    # так как последующие команды (disconnect/exit) или сама `queue-stats` могли вызывать ошибку.
     if grep -q "Messages sent to queue" "$log_file"; then
         echo "    ✓ Успешно отправлено (подтверждено по логу 'Messages sent to queue')"
         # Если код возврата был не 0, но сообщение отправлено, все равно сообщим об этом, но не будем считать ошибкой отправки.
